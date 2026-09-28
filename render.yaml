@@ -1,25 +1,19 @@
-﻿services:
-  # 1. FastAPI Cloud Backend Service
+services:
   - type: web
     name: margadrishti-api
     env: python
     region: oregon
     plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    buildCommand: 'pip install -r requirements.txt'
+    startCommand: 'uvicorn backend.main:app --host 0.0.0.0 --port '
     envVars:
       - key: PORT
         value: 10000
 
-  # 2. React + Vite GIS Web Dashboard
   - type: static
     name: margadrishti-web
     region: oregon
     plan: free
     rootDir: frontend
-    buildCommand: "npm install && npm run build"
+    buildCommand: 'npm install && npm run build'
     staticPublishPath: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
