@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" width="880" height="500">
+  <defs>
+    <linearGradient id="skyGrad4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a252f"/>
+      <stop offset="100%" stop-color="#2c3e50"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="880" height="240" fill="url(#skyGrad4)"/>
+  <rect y="240" width="880" height="260" fill="#1b2024"/>
+
+  <!-- Pedestrians / school children silhouette -->
+  <circle cx="360" cy="300" r="14" fill="#9b59b6"/>
+  <rect x="350" y="316" width="20" height="42" fill="#9b59b6" rx="3"/>
+  <circle cx="410" cy="310" r="12" fill="#8e44ad"/>
+  <rect x="402" y="324" width="16" height="36" fill="#8e44ad" rx="3"/>
+
+  <!-- AI Bounding Box Overlay -->
+  <rect x="330" y="270" width="120" height="150" fill="#9b59b6" fill-opacity="0.15" stroke="#9b59b6" stroke-width="3" stroke-dasharray="8,4"/>
+  <rect x="330" y="240" width="240" height="28" fill="#9b59b6" rx="4"/>
+  <text x="340" y="259" fill="#ffffff" font-family="monospace" font-size="13" font-weight="bold">CHILDREN CROSSING (91%)</text>
+
+  <!-- HUD Overlay -->
+  <rect width="880" height="42" fill="#000000" fill-opacity="0.8"/>
+  <circle cx="25" cy="21" r="7" fill="#9b59b6"/>
+  <text x="40" y="26" fill="#ffffff" font-family="monospace" font-size="14" font-weight="bold">MARGADRISHTI SAFETY RADAR | CAM_FRONT</text>
+  <text x="860" y="26" fill="#00ffcc" font-family="monospace" font-size="13" text-anchor="end">Risk: HIGH | Missing Zebra Crossing</text>
+
+  <rect y="450" width="880" height="50" fill="#000000" fill-opacity="0.85"/>
+  <text x="20" y="472" fill="#00e5ff" font-family="monospace" font-size="13" font-weight="bold">BUS_110 | R15 | 16.0 km/h (Drop 48.4%) | 19.0550° N, 72.8350° E</text>
+  <text x="20" y="490" fill="#f39c12" font-family="monospace" font-size="12">Turner Road School Zone | Caution: Vulnerable Pedestrians in Carriage Way</text>
+  <text x="860" y="482" fill="#aaaaaa" font-family="monospace" font-size="12" text-anchor="end">SIH 2026 PS 26124 | BEL</text>
+</svg>

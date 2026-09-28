@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" width="880" height="500">
+  <defs>
+    <linearGradient id="skyGrad3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1b2a3a"/>
+      <stop offset="100%" stop-color="#243342"/>
+    </linearGradient>
+    <linearGradient id="waterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1f4056"/>
+      <stop offset="100%" stop-color="#142c3d"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="880" height="240" fill="url(#skyGrad3)"/>
+  <rect y="240" width="880" height="260" fill="#1b2126"/>
+
+  <!-- Water pool on roadway -->
+  <polygon points="120,400 240,290 680,290 820,420 540,470 200,460" fill="url(#waterGrad)" opacity="0.9"/>
+  <ellipse cx="460" cy="370" rx="260" ry="70" fill="#2980b9" opacity="0.35"/>
+
+  <!-- AI Bounding Box Overlay -->
+  <rect x="180" y="270" width="540" height="180" fill="#f1c40f" fill-opacity="0.12" stroke="#f1c40f" stroke-width="3" stroke-dasharray="10,5"/>
+  <rect x="180" y="240" width="220" height="28" fill="#f1c40f" rx="4"/>
+  <text x="190" y="259" fill="#000000" font-family="monospace" font-size="13" font-weight="bold">WATERLOGGING (88%)</text>
+
+  <!-- HUD Overlay -->
+  <rect width="880" height="42" fill="#000000" fill-opacity="0.8"/>
+  <circle cx="25" cy="21" r="7" fill="#f1c40f"/>
+  <text x="40" y="26" fill="#ffffff" font-family="monospace" font-size="14" font-weight="bold">MARGADRISHTI ON-BOARD EDGE AI CAM | CAM_FRONT</text>
+  <text x="860" y="26" fill="#00ffcc" font-family="monospace" font-size="13" text-anchor="end">Submersion: 68% Roadway Covered</text>
+
+  <rect y="450" width="880" height="50" fill="#000000" fill-opacity="0.85"/>
+  <text x="20" y="472" fill="#00e5ff" font-family="monospace" font-size="13" font-weight="bold">BUS_107 | R12 | 14.1 km/h (Drop 55.9%) | 19.0882° N, 72.8421° E</text>
+  <text x="20" y="490" fill="#f39c12" font-family="monospace" font-size="12">SV Road Underpass (Milan Subway) | Hydroplaning Risk: MEDIUM</text>
+  <text x="860" y="482" fill="#aaaaaa" font-family="monospace" font-size="12" text-anchor="end">SIH 2026 PS 26124 | BEL</text>
+</svg>

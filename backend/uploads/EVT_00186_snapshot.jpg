@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 500" width="880" height="500">
+  <defs>
+    <linearGradient id="skyGrad5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="880" height="240" fill="url(#skyGrad5)"/>
+  <rect y="240" width="880" height="260" fill="#18181b"/>
+
+  <!-- Fleeing Vehicle Shape -->
+  <rect x="290" y="220" width="220" height="130" fill="#94a3b8" rx="10"/>
+  <rect x="320" y="235" width="160" height="50" fill="#334155" rx="4"/>
+  <circle cx="330" cy="350" r="22" fill="#0f172a"/>
+  <circle cx="470" cy="350" r="22" fill="#0f172a"/>
+
+  <!-- License Plate Cutout with Zoom Inset -->
+  <rect x="360" y="310" width="80" height="24" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+  <text x="368" y="327" fill="#000000" font-family="monospace" font-size="11" font-weight="bold">MH 12 AB 1234</text>
+
+  <!-- High-Res Zoomed Inset for ANPR Evidence -->
+  <rect x="580" y="80" width="270" height="160" fill="#0f172a" stroke="#00e5ff" stroke-width="2" rx="6"/>
+  <rect x="580" y="80" width="270" height="30" fill="#1e293b" rx="6"/>
+  <text x="590" y="100" fill="#00e5ff" font-family="monospace" font-size="12" font-weight="bold">ANPR OCR ZOOM CROP (94%)</text>
+  
+  <rect x="600" y="130" width="230" height="65" fill="#facc15" stroke="#000000" stroke-width="3" rx="4"/>
+  <text x="615" y="172" fill="#000000" font-family="monospace" font-size="28" font-weight="900" letter-spacing="2">MH 12 AB 1234</text>
+  <text x="600" y="222" fill="#22c55e" font-family="monospace" font-size="12">VEHICLE: SEDAN (SILVER-WHITE)</text>
+
+  <!-- Incident Bounding Box -->
+  <rect x="270" y="190" width="260" height="180" fill="#e74c3c" fill-opacity="0.1" stroke="#e74c3c" stroke-width="3" stroke-dasharray="10,5"/>
+  <rect x="270" y="160" width="220" height="28" fill="#e74c3c" rx="4"/>
+  <text x="280" y="179" fill="#ffffff" font-family="monospace" font-size="13" font-weight="bold">INCIDENT - FLEEING (92%)</text>
+
+  <!-- HUD Overlay -->
+  <rect width="880" height="42" fill="#000000" fill-opacity="0.8"/>
+  <circle cx="25" cy="21" r="7" fill="#e74c3c"/>
+  <text x="40" y="26" fill="#ffffff" font-family="monospace" font-size="14" font-weight="bold">MARGADRISHTI ANPR & INCIDENT INVESTIGATION | CAM_FRONT</text>
+  <text x="860" y="26" fill="#ef4444" font-family="monospace" font-size="13" text-anchor="end">STATUS: SUSPECTED HIT-AND-RUN</text>
+
+  <rect y="450" width="880" height="50" fill="#000000" fill-opacity="0.85"/>
+  <text x="20" y="472" fill="#00e5ff" font-family="monospace" font-size="13" font-weight="bold">BUS_108 | R12 | 19.0620° N, 72.8680° E | BKC Connector Junction</text>
+  <text x="20" y="490" fill="#facc15" font-family="monospace" font-size="12">Extracted Plate: MH 12 AB 1234 | Confidence: 94% | Lead Transmitted to Authority</text>
+  <text x="860" y="482" fill="#aaaaaa" font-family="monospace" font-size="12" text-anchor="end">SIH 2026 PS 26124 | BEL</text>
+</svg>

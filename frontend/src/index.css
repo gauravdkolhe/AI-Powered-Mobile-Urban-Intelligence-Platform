@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0b0f17;
+    color: #e2e8f0;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f17;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f2d3d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Custom Leaflet Map styling for Dark Theme */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: #0d121c !important;
+}
+
+.custom-bus-icon {
+  background: transparent;
+  border: none;
+}
+
+.custom-event-pin {
+  background: transparent;
+  border: none;
+}
