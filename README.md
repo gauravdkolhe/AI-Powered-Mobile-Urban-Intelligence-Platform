@@ -196,8 +196,9 @@ Every verified edge detection emits a lightweight JSON packet:
 3. **99.98% Bandwidth Reduction**: Eliminates cloud video streaming by doing inference locally on Jetson/Coral TPU and transmitting lightweight JSON.
 4. **Resilient Offline-First Architecture**: Stores events in on-disk SQLite queues during cellular dead zones and synchronizes automatically on reconnection.
 5. **Multi-Bus Cross-Verification**: Spatially correlates independent bus observations to confirm permanent infrastructure defects and prioritize municipal repair crews.
+6. **Role based Login**: The centralize platform for Problem identification, Management, and Problem Solving by collaborating various Departments Simantenously.
 
 ---
 
 ## 📄 License & Attribution
-Developed for **Smart India Hackathon 2026** — Problem Statement 26124 for **Bharat Electronics Limited (BEL)**.
+Developed Gaurav Deepakrao Kolhe
