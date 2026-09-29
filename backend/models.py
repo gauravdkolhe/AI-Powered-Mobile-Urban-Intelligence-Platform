@@ -111,6 +111,7 @@ class IncidentLead(Base):
     timestamp = Column(String(64), nullable=False)
     reporting_bus_id = Column(String(64), nullable=False)
     status = Column(String(64), default="UNDER_INVESTIGATION")
+    reason = Column(String(255), nullable=True)
     evidence_snapshot_url = Column(String(512))
     notes = Column(Text, nullable=True)
 

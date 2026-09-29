@@ -52,6 +52,7 @@ function MainDashboard() {
 
   const [layers, setLayers] = useState({
     roadHealth: true,
+    tracks: true,
     congestion: true,
     fleet: true,
     workOrders: true

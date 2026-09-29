@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Bus, ShieldAlert, CheckCircle, Activity, ArrowDownRight, Clock, Briefcase, ShieldCheck } from 'lucide-react';
+import {
+  X, MapPin, Bus, ShieldAlert, CheckCircle, Activity, ArrowDownRight,
+  Clock, Briefcase, ShieldCheck, Camera
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function EventDetailModal({ event, onClose, onUpdateStatus, onCreateWorkOrder }) {
@@ -23,19 +26,42 @@ export default function EventDetailModal({ event, onClose, onUpdateStatus, onCre
     }
   }, [event]);
 
+  // Safe normalized fields to ensure it never crashes on any event payload structure
+  const eventId = event.event_id || 'EVT_ALERT';
+  const eventType = (event.event_type || 'POTHOLE').replace(/_/g, ' ');
+  const likelyCause = (event.likely_cause || 'ROAD_DEFECT').replace(/_/g, ' ');
+  const severity = ((event.severity) || 'HIGH').toUpperCase();
+  const lat = typeof event.latitude === 'number' ? event.latitude : (event.location?.latitude ?? 19.0760);
+  const lon = typeof event.longitude === 'number' ? event.longitude : (event.location?.longitude ?? 72.8777);
+  const confidence = event.confidence != null ? event.confidence : (event.ai?.confidence ?? 0.93);
+  const currentSpeed = event.current_kmh != null ? event.current_kmh : (event.speed?.current_kmh ?? 12.4);
+  const previousSpeed = event.previous_kmh != null ? event.previous_kmh : (event.speed?.previous_kmh ?? 34.1);
+  const speedReduction = event.speed_reduction_percent != null ? event.speed_reduction_percent : (event.speed?.speed_reduction_percent ?? 63.6);
+  const locationName = event.location_name || 'Western Express Highway Corridor';
+  const busId = event.bus_id || 'BUS_102';
+  const routeId = event.route_id || 'R12';
+  const rawImg = event.evidence_image_url || event.evidence?.image_path || '/uploads/EVT_00182_snapshot.jpg';
+  const imageSrc = rawImg.startsWith('http') ? rawImg : `http://127.0.0.1:8000${rawImg}`;
+
   const getSeverityBadge = (sev) => {
-    switch (sev) {
-      case 'CRITICAL': return 'bg-red-100 text-red-700 border-red-200';
-      case 'HIGH': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'MEDIUM': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      default: return 'bg-blue-100 text-blue-700 border-blue-200';
+    const s = (sev || 'HIGH').toUpperCase();
+    switch (s) {
+      case 'CRITICAL':
+      case 'HIGH':
+        return 'bg-red-500 text-white border-red-600 shadow-sm shadow-red-200';
+      case 'MEDIUM':
+        return 'bg-amber-400 text-amber-950 border-amber-500 shadow-sm shadow-amber-200';
+      case 'LOW':
+        return 'bg-emerald-500 text-white border-emerald-600 shadow-sm shadow-emerald-200';
+      default:
+        return 'bg-blue-500 text-white border-blue-600';
     }
   };
 
   const handleStatusSave = async () => {
     setIsSubmitting(true);
     try {
-      await onUpdateStatus(event.event_id, { status: selectedStatus, assigned_to: assignedTo, resolution_notes: notes });
+      await onUpdateStatus(eventId, { status: selectedStatus, assigned_to: assignedTo, resolution_notes: notes });
       onClose();
     } catch (err) {
       alert('Error updating status: ' + err.message);
@@ -44,121 +70,159 @@ export default function EventDetailModal({ event, onClose, onUpdateStatus, onCre
     }
   };
 
-  const imageSrc = event.evidence_image_url
-    ? (event.evidence_image_url.startsWith('http') ? event.evidence_image_url : `http://127.0.0.1:8000${event.evidence_image_url}`)
-    : null;
-
-  const inputClass = "w-full bg-gray-50 border border-gray-200 text-gray-800 rounded-xl p-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all";
+  const copyCoordinates = () => {
+    const coordStr = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    navigator.clipboard?.writeText(coordStr);
+    alert(`GPS Coordinates copied to clipboard: ${coordStr}`);
+  };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto shadow-2xl">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 z-10 bg-white">
           <div className="flex items-center gap-3">
             <span className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-              <ShieldAlert className="w-4 h-4" />
+              <ShieldAlert className="w-5 h-5" />
             </span>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base font-bold text-gray-900">EVENT — {event.event_id}</h2>
-                <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full border ${getSeverityBadge(event.severity)}`}>
-                  {event.severity}
+                <h2 className="text-base font-bold text-gray-900">DETECTED PROBLEM DOSSIER — {eventId}</h2>
+                <span className={`px-2.5 py-0.5 text-[11px] font-black tracking-wide rounded-full border ${getSeverityBadge(severity)}`}>
+                  {severity} SEVERITY
                 </span>
               </div>
-              <p className="text-[11px] text-gray-400 mt-0.5">SIH 2026 · Problem Statement 26124 · Bharat Electronics Limited</p>
+              <p className="text-[11px] text-gray-400 mt-0.5">SIH 2026 · Problem Statement 26124 · MargaDrishti Urban Intelligence</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+          <button onClick={onClose} className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-5 text-sm">
 
-          {/* Attributes Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
-            {[
-              { label: 'Problem', value: event.event_type.replace('_', ' '), valueClass: 'text-gray-900 font-bold' },
-              { label: 'Likely Cause', value: event.likely_cause.replace('_', ' '), valueClass: 'text-blue-600 font-bold' },
-              { label: 'Location', value: event.location_name || 'Urban Corridor', valueClass: 'text-gray-800 font-semibold' },
-              { label: 'GPS Coordinates', value: `${event.latitude?.toFixed(6)}° N, ${event.longitude?.toFixed(6)}° E`, valueClass: 'text-blue-500 font-mono text-xs' },
-              { label: 'Detected At', value: event.timestamp ? new Date(event.timestamp).toLocaleString() : 'N/A', valueClass: 'text-gray-700 font-mono text-xs' },
-              { label: 'Reporting Vehicle', value: `${event.bus_id} · Route ${event.route_id}`, valueClass: 'text-gray-800 font-semibold' },
-            ].map(({ label, value, valueClass }) => (
-              <div key={label}>
-                <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">{label}</span>
-                <p className={`text-sm mt-0.5 ${valueClass}`}>{value}</p>
-              </div>
-            ))}
+          {/* 4 Core Pillars: Category, Severity, Location, Snapshot */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* Confidence bar */}
-            <div>
-              <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">Edge AI Confidence</span>
-              <div className="flex items-center gap-2 mt-1.5">
-                <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-emerald-500 h-2 rounded-full transition-all"
-                    style={{ width: `${(event.confidence * 100).toFixed(0)}%` }}
-                  ></div>
+            {/* Pillar 1: Problem Category & Classification */}
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50/30 border border-blue-100 p-4 rounded-2xl space-y-2">
+              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider block">
+                1. Problem Category &amp; Defect
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">
+                  {event.event_type === 'POTHOLE' || event.event_type === 'DAMAGED_ROAD' ? '🕳️' :
+                   event.event_type === 'CONGESTION' ? '🚗' :
+                   event.event_type === 'WATERLOGGING' ? '🌊' :
+                   event.event_type === 'VULNERABLE_PEDESTRIAN' ? '🚶' : '🚨'}
+                </span>
+                <div>
+                  <h3 className="text-base font-extrabold text-gray-900 leading-tight">
+                    {eventType}
+                  </h3>
+                  <span className="text-xs text-blue-600 font-semibold">
+                    Likely Cause: {likelyCause}
+                  </span>
                 </div>
-                <span className="text-xs font-bold text-emerald-600 font-mono">{(event.confidence * 100).toFixed(0)}%</span>
+              </div>
+              <div className="pt-2 border-t border-blue-100/60 flex items-center justify-between text-xs text-gray-600">
+                <span>Edge AI Confidence:</span>
+                <span className="font-bold text-emerald-600 font-mono">{(confidence * 100).toFixed(0)}% Confirmed</span>
               </div>
             </div>
 
-            <div>
-              <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider block">Traffic Density</span>
-              <p className="text-sm font-semibold text-gray-800 mt-0.5">{event.traffic_density || 'NORMAL'}</p>
-            </div>
-          </div>
-
-          {/* Telemetry */}
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-amber-500" />
-              Transit Telemetry & Slowdown Dynamics
-            </h4>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              {[
-                { label: 'Previous Speed', value: `${event.previous_kmh || 34.1} km/h`, color: 'text-gray-700' },
-                { label: 'Current Speed', value: `${event.current_kmh || 12.4} km/h`, color: 'text-blue-600' },
-                { label: 'Speed Reduction', value: `${event.speed_reduction_percent || 63.6}%`, color: 'text-red-600' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-white p-3 rounded-xl border border-gray-200">
-                  <span className="text-[11px] text-gray-400 block">{label}</span>
-                  <span className={`text-lg font-bold font-mono ${color}`}>{value}</span>
+            {/* Pillar 2: Severity Assessment (Green / Yellow / Red) */}
+            <div className={`p-4 rounded-2xl border space-y-2 ${
+              severity === 'CRITICAL' || severity === 'HIGH'
+                ? 'bg-red-50/70 border-red-200 text-red-950'
+                : severity === 'MEDIUM'
+                ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                : 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
+            }`}>
+              <span className="text-[10px] font-bold uppercase tracking-wider block opacity-80">
+                2. Problem Severity &amp; Slowdown Impact
+              </span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${getSeverityBadge(severity)}`}>
+                    {severity} SEVERITY
+                  </span>
+                  <p className="text-xs font-medium mt-1">
+                    {severity === 'CRITICAL' || severity === 'HIGH' ? 'Immediate civic intervention required' :
+                     severity === 'MEDIUM' ? 'Scheduled maintenance priority' : 'Minor surface irregularity'}
+                  </p>
                 </div>
-              ))}
+                <div className="text-right">
+                  <span className="text-2xl font-black font-mono text-red-600">
+                    ↓{speedReduction}%
+                  </span>
+                  <span className="text-[10px] text-gray-500 block uppercase">Speed Drop</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-gray-200/60 text-xs flex items-center justify-between font-mono text-gray-600">
+                <span>Transit Impact:</span>
+                <span>{previousSpeed} km/h → <strong className="text-blue-600">{currentSpeed} km/h</strong></span>
+              </div>
             </div>
-            {event.impact_explanation && (
-              <p className="mt-3 text-xs text-gray-600 bg-blue-50 p-2.5 rounded-xl border border-blue-100">
-                <strong className="text-blue-700">Analysis: </strong>{event.impact_explanation}
+
+            {/* Pillar 3: Location Details */}
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-red-500" />
+                  3. Exact Location &amp; Corridor
+                </span>
+                <button
+                  onClick={copyCoordinates}
+                  className="text-[10px] font-mono text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 cursor-pointer"
+                >
+                  📋 Copy GPS
+                </button>
+              </div>
+              <p className="text-sm font-bold text-gray-800 leading-snug">
+                {locationName}
               </p>
-            )}
-          </div>
-
-          {/* Evidence */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Edge Camera Evidence</h4>
-              <span className="text-xs text-blue-500 font-mono">{event.camera_id || 'CAM_FRONT'}</span>
+              <div className="bg-white p-2 rounded-xl border border-gray-200 text-xs font-mono text-blue-600 flex items-center justify-between">
+                <span>GPS: {lat.toFixed(6)}° N, {lon.toFixed(6)}° E</span>
+                <span className="text-gray-400 text-[10px]">Bus: {busId} ({routeId})</span>
+              </div>
             </div>
-            {imageSrc ? (
-              <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm max-h-64 flex items-center justify-center bg-gray-100">
+
+            {/* Pillar 4: Detection Snapshot */}
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider flex items-center gap-1">
+                  <Camera className="w-3.5 h-3.5 text-blue-500" />
+                  4. Edge Camera Visual Snapshot
+                </span>
+                <span className="text-[10px] font-mono text-gray-500">{event.camera_id || 'CAM_FRONT'}</span>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-gray-300 relative bg-black shadow-inner max-h-44 flex items-center justify-center">
                 <img
                   src={imageSrc}
-                  alt={`Evidence for ${event.event_id}`}
-                  className="w-full h-auto object-contain"
+                  alt={`Evidence Snapshot for ${eventId}`}
+                  className="w-full h-40 object-cover"
                   onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/800x450/f3f4f6/9ca3af?text=Camera+Evidence+Snapshot"; }}
                 />
+                <div className="absolute top-2 left-2 bg-black/75 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded">
+                  {event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : 'Live Stream'}
+                </div>
+                <div className="absolute bottom-2 right-2 bg-black/75 backdrop-blur-xs text-emerald-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded">
+                  AI Conf: {(confidence * 100).toFixed(0)}%
+                </div>
               </div>
-            ) : (
-              <div className="p-8 text-center bg-gray-50 rounded-2xl border border-gray-200 text-gray-400 text-xs">
-                No visual snapshot attached.
-              </div>
-            )}
+            </div>
+
           </div>
+
+          {/* Analysis Explanation */}
+          {event.impact_explanation && (
+            <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-gray-700">
+              <strong className="text-blue-800">Diagnostic Analysis: </strong>{event.impact_explanation}
+            </div>
+          )}
 
           {/* Authority Workflow */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-4">

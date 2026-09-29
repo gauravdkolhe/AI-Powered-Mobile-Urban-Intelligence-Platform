@@ -84,6 +84,7 @@ export default function FilterBar({
 
           {[
             { key: 'roadHealth', label: 'Road Health', active: 'bg-blue-100 text-blue-700 font-semibold' },
+            { key: 'tracks', label: 'Bus Tracks', active: 'bg-emerald-100 text-emerald-700 font-semibold' },
             { key: 'congestion', label: 'Congestion', active: 'bg-amber-100 text-amber-700 font-semibold' },
             { key: 'fleet', label: 'Buses', active: 'bg-sky-100 text-sky-700 font-semibold' },
             { key: 'workOrders', label: 'Work Orders', active: 'bg-indigo-100 text-indigo-700 font-semibold' },

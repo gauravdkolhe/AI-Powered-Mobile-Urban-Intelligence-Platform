@@ -230,29 +230,147 @@ def _seed_buses_and_events(db: Session):
     for seg in segments:
         db.add(seg)
 
-    # 4. Incident Leads (Spec #32 & 33)
-    incident = IncidentLead(
-        incident_id="INC_0089",
-        incident_type="SUSPECTED_HIT_AND_RUN",
-        vehicle_type="SEDAN_CAR",
-        license_plate="MH12AB1234",
-        ocr_confidence=0.94,
-        latitude=19.0620,
-        longitude=72.8680,
-        location_name="Bandra-Kurla Complex (BKC) Connector",
-        timestamp=(now - timedelta(minutes=12)).isoformat(),
-        reporting_bus_id="BUS_108",
-        status="UNDER_INVESTIGATION",
-        evidence_snapshot_url="/uploads/EVT_00186_snapshot.jpg",
-        notes="Vehicle collided with stationary two-wheeler and fled westbound. ANPR extracted plate with 94% OCR confidence."
-    )
-    db.add(incident)
+def _seed_incident_leads(db: Session, now=None):
+    if now is None:
+        now = datetime.now(timezone.utc)
+    incidents_data = [
+        {
+            "incident_id": "INC_0089",
+            "incident_type": "SUSPECTED_HIT_AND_RUN",
+            "vehicle_type": "Sedan (Silver Honda City)",
+            "license_plate": "MH12AB1234",
+            "ocr_confidence": 0.96,
+            "lat": 19.0620, "lon": 72.8680,
+            "location_name": "Bandra-Kurla Complex (BKC) Connector Junction",
+            "timestamp": (now - timedelta(minutes=12)).isoformat(),
+            "bus_id": "BUS_108",
+            "status": "UNDER_INVESTIGATION",
+            "reason": "Suspected Hit-and-Run collision with two-wheeler; vehicle fled westbound onto BKC Connector ramp.",
+            "img": "/uploads/EVT_00186_snapshot.jpg",
+            "notes": "Vehicle collided with stationary two-wheeler and fled westbound. ANPR extracted plate with 96% OCR confidence. CCTV forensic trail initiated."
+        },
+        {
+            "incident_id": "INC_0090",
+            "incident_type": "BRTS_LANE_VIOLATION",
+            "vehicle_type": "SUV (Black Mahindra Scorpio-N)",
+            "license_plate": "MH02CZ9821",
+            "ocr_confidence": 0.98,
+            "lat": 19.0760, "lon": 72.8777,
+            "location_name": "Western Express Highway (Santacruz Flyover Northbound)",
+            "timestamp": (now - timedelta(minutes=24)).isoformat(),
+            "bus_id": "BUS_102",
+            "status": "E_CHALLAN_ISSUED",
+            "reason": "Unauthorized intrusion into dedicated Bus Rapid Transit (BRTS) corridor causing transit delay of 8 mins.",
+            "img": "/uploads/EVT_00183_snapshot.jpg",
+            "notes": "Vehicle entered designated bus priority corridor during peak transit hours, obstructing Bus 102 headway."
+        },
+        {
+            "incident_id": "INC_0091",
+            "incident_type": "OVER_SPEEDING_SCHOOL_ZONE",
+            "vehicle_type": "Commercial Truck (Tata 407 LPT)",
+            "license_plate": "MH04ER5543",
+            "ocr_confidence": 0.95,
+            "lat": 19.0550, "lon": 72.8350,
+            "location_name": "Turner Road School Crossing Zone",
+            "timestamp": (now - timedelta(minutes=35)).isoformat(),
+            "bus_id": "BUS_110",
+            "status": "POLICE_DISPATCHED",
+            "reason": "Dangerous over-speeding at 64 km/h in designated 25 km/h school crossing zone during morning student dispersal.",
+            "img": "/uploads/EVT_00185_snapshot.jpg",
+            "notes": "Radar-assisted edge camera clocked vehicle at 64 km/h in restricted speed school zone. Pedestrian hazard flag raised."
+        },
+        {
+            "incident_id": "INC_0092",
+            "incident_type": "RED_LIGHT_JUMP",
+            "vehicle_type": "Hatchback (White Maruti Swift)",
+            "license_plate": "MH01BK7720",
+            "ocr_confidence": 0.94,
+            "lat": 19.0882, "lon": 72.8421,
+            "location_name": "SV Road Underpass (Milan Subway Approach)",
+            "timestamp": (now - timedelta(minutes=48)).isoformat(),
+            "bus_id": "BUS_107",
+            "status": "E_CHALLAN_ISSUED",
+            "reason": "Signal jumping through active intersection 3.4 seconds into red phase, creating high collision risk.",
+            "img": "/uploads/EVT_00184_snapshot.jpg",
+            "notes": "Automated junction optical sensor confirmed vehicle crossing stop line 3.4s after amber-to-red transition."
+        },
+        {
+            "incident_id": "INC_0093",
+            "incident_type": "WRONG_WAY_DRIVING",
+            "vehicle_type": "Delivery Van (Mahindra Bolero Maxi Truck)",
+            "license_plate": "MH47AQ3109",
+            "ocr_confidence": 0.97,
+            "lat": 19.1136, "lon": 72.8697,
+            "location_name": "New Link Road Corridor (Andheri West Junction)",
+            "timestamp": (now - timedelta(minutes=55)).isoformat(),
+            "bus_id": "BUS_105",
+            "status": "UNDER_INVESTIGATION",
+            "reason": "High-risk wrong-way navigation against oncoming traffic descending one-way elevated flyover ramp.",
+            "img": "/uploads/EVT_00182_snapshot.jpg",
+            "notes": "Bus 105 forward camera recorded delivery truck driving northbound on one-way southbound flyover exit."
+        },
+        {
+            "incident_id": "INC_0094",
+            "incident_type": "STOLEN_VEHICLE_ALERT",
+            "vehicle_type": "Coupe (Blue BMW 3 Series)",
+            "license_plate": "DL08CA4419",
+            "ocr_confidence": 0.99,
+            "lat": 19.0645, "lon": 72.8590,
+            "location_name": "Kalanagar Junction Western Corridor",
+            "timestamp": (now - timedelta(hours=1, minutes=15)).isoformat(),
+            "bus_id": "BUS_101",
+            "status": "CRITICAL_ALARM_DISPATCHED",
+            "reason": "Automated ANPR match with NCRB National Stolen Vehicle Registry hot-list (FIR #412/2026 registered at Delhi Crime Branch).",
+            "img": "/uploads/EVT_00186_snapshot.jpg",
+            "notes": "Instant match with inter-state stolen vehicle database. Highway patrol intercept units notified with live geo-coordinates."
+        },
+        {
+            "incident_id": "INC_0095",
+            "incident_type": "EXPIRED_FITNESS_POLLUTION",
+            "vehicle_type": "Auto-Rickshaw (Bajaj RE Compact)",
+            "license_plate": "MH03DZ1988",
+            "ocr_confidence": 0.92,
+            "lat": 19.0990, "lon": 72.8520,
+            "location_name": "Vile Parle Station East Arterial",
+            "timestamp": (now - timedelta(hours=2, minutes=5)).isoformat(),
+            "bus_id": "BUS_114",
+            "status": "PENDING_INSPECTION",
+            "reason": "Commercial passenger carrier operating with expired fitness certificate (>8 months overdue) and heavy particulate smoke emission.",
+            "img": "/uploads/EVT_00185_snapshot.jpg",
+            "notes": "Vahan RTO database lookup indicated expired fitness and PUC. Visual exhaust smoke density exceeded permissible BS-VI limits."
+        }
+    ]
+
+    for inc in incidents_data:
+        lead = IncidentLead(
+            incident_id=inc["incident_id"],
+            incident_type=inc["incident_type"],
+            vehicle_type=inc["vehicle_type"],
+            license_plate=inc["license_plate"],
+            ocr_confidence=inc["ocr_confidence"],
+            latitude=inc["lat"],
+            longitude=inc["lon"],
+            location_name=inc["location_name"],
+            timestamp=inc["timestamp"],
+            reporting_bus_id=inc["bus_id"],
+            status=inc["status"],
+            reason=inc["reason"],
+            evidence_snapshot_url=inc["img"],
+            notes=inc["notes"]
+        )
+        db.add(lead)
 
 def seed_database(db: Session):
     # Check if buses and events are already seeded
     if db.query(Bus).count() == 0:
         print("[Seeder] Initializing MargaDrishti database with realistic urban transit data...")
         _seed_buses_and_events(db)
+        _seed_incident_leads(db)
+    elif db.query(IncidentLead).count() < 5:
+        print("[Seeder] Updating Incident Leads with demo detected vehicles & reasons...")
+        db.query(IncidentLead).delete()
+        _seed_incident_leads(db)
+        db.commit()
 
     # 5. Department Users & Officers (RBAC Model)
     if db.query(User).count() == 0:
