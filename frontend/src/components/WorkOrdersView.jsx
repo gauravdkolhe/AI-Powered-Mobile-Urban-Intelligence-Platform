@@ -10,11 +10,17 @@ import {
   ShieldCheck,
   RefreshCw,
   Plus,
-  Filter,
   Eye
 } from 'lucide-react';
 import { fetchWorkOrders, updateWorkOrderStatus, uploadWorkOrderProof } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+
+const STATUS_CONFIG = {
+  ASSIGNED: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
+  IN_PROGRESS: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
+  COMPLETED: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500' },
+  VERIFIED_AND_CLOSED: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+};
 
 export default function WorkOrdersView({ onSelectLocation }) {
   const { currentRole, currentUser } = useAuth();
@@ -35,9 +41,7 @@ export default function WorkOrdersView({ onSelectLocation }) {
     try {
       const filters = {};
       if (statusFilter !== 'ALL') filters.status = statusFilter;
-      // If PWD, filter to PWD assigned
       if (isPWD) filters.assigned_department = 'PWD';
-
       const data = await fetchWorkOrders(filters);
       setWorkOrders(data);
     } catch (err) {
@@ -47,20 +51,13 @@ export default function WorkOrdersView({ onSelectLocation }) {
     }
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, [statusFilter, currentRole]);
+  useEffect(() => { loadOrders(); }, [statusFilter, currentRole]);
 
   const handleStartWork = async (orderId) => {
     try {
-      await updateWorkOrderStatus(orderId, {
-        status: 'IN_PROGRESS',
-        repair_notes: 'PWD repair crew deployed on site.'
-      });
+      await updateWorkOrderStatus(orderId, { status: 'IN_PROGRESS', repair_notes: 'PWD repair crew deployed on site.' });
       loadOrders();
-    } catch (err) {
-      alert('Error starting work: ' + err.message);
-    }
+    } catch (err) { alert('Error starting work: ' + err.message); }
   };
 
   const handleSubmitProof = async (e) => {
@@ -68,119 +65,99 @@ export default function WorkOrdersView({ onSelectLocation }) {
     if (!selectedOrder) return;
     setIsSubmittingProof(true);
     try {
-      await uploadWorkOrderProof(selectedOrder.order_id, {
-        evidence_after_url: proofUrl,
-        repair_notes: repairNotes
-      });
+      await uploadWorkOrderProof(selectedOrder.order_id, { evidence_after_url: proofUrl, repair_notes: repairNotes });
       setIsProofModalOpen(false);
       setSelectedOrder(null);
       loadOrders();
-    } catch (err) {
-      alert('Error submitting proof: ' + err.message);
-    } finally {
-      setIsSubmittingProof(false);
-    }
+    } catch (err) { alert('Error submitting proof: ' + err.message); }
+    finally { setIsSubmittingProof(false); }
   };
 
   const handleVerifyAndClose = async (orderId) => {
     try {
       await updateWorkOrderStatus(orderId, {
         status: 'VERIFIED_AND_CLOSED',
-        verification_notes: `Field repair inspection approved by ${currentUser?.name || 'Municipal Officer'}. Quality check passed.`
+        verification_notes: `Field repair approved by ${currentUser?.name || 'Municipal Officer'}. Quality check passed.`
       });
       loadOrders();
-    } catch (err) {
-      alert('Error closing work order: ' + err.message);
-    }
+    } catch (err) { alert('Error closing work order: ' + err.message); }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'ASSIGNED':
-        return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-      case 'IN_PROGRESS':
-        return 'bg-amber-500/10 text-amber-400 border-amber-500/30 animate-pulse';
-      case 'COMPLETED':
-        return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
-      case 'VERIFIED_AND_CLOSED':
-        return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
-      default:
-        return 'bg-slate-800 text-slate-400';
-    }
-  };
+  const getStatusStyle = (status) => STATUS_CONFIG[status] || { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' };
 
   return (
-    <div className="bg-[#131b26] border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-      
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <div className="flex items-center space-x-3">
-            <span className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <Briefcase className="w-6 h-6" />
+    <div className="space-y-4">
+
+      {/* Header */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+              <Briefcase className="w-5 h-5" />
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-black text-white tracking-tight">
-                  {isPWD ? 'PWD Assigned Maintenance Works' : 'Municipal Work Order Governance'}
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg font-bold text-gray-900">
+                  {isPWD ? 'PWD Maintenance Works' : 'Work Order Governance'}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-slate-900 text-cyan-400 border border-slate-700">
-                  {isPWD ? 'Execution Mode' : 'Oversight & Verification Mode'}
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                  {isPWD ? 'Execution Mode' : 'Oversight & Verification'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-gray-500 mt-0.5">
                 {isPWD
-                  ? 'Active work orders assigned to PWD for road defect patching, drainage de-silting, and field repairs.'
-                  : 'Municipal Corporation command hub for assigning civic road defect orders to PWD and verifying completion.'}
+                  ? 'Active work orders assigned to PWD for road defect patching and field repairs.'
+                  : 'Municipal command hub for assigning road defect orders to PWD and verifying completion.'}
               </p>
             </div>
           </div>
-        </div>
 
-        {/* Filter Controls */}
-        <div className="flex items-center space-x-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-900 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500"
-          >
-            <option value="ALL">All Work Orders</option>
-            <option value="ASSIGNED">Assigned (Pending PWD)</option>
-            <option value="IN_PROGRESS">In Progress (Field Work)</option>
-            <option value="COMPLETED">Completed (Awaiting Sign-off)</option>
-            <option value="VERIFIED_AND_CLOSED">Verified &amp; Closed</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white border border-gray-200 text-gray-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 shadow-sm"
+            >
+              <option value="ALL">All Work Orders</option>
+              <option value="ASSIGNED">Assigned (Pending PWD)</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed (Awaiting Sign-off)</option>
+              <option value="VERIFIED_AND_CLOSED">Verified & Closed</option>
+            </select>
 
-          <button
-            onClick={loadOrders}
-            className="p-2 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-xl border border-slate-800 transition-all cursor-pointer"
-            title="Refresh Orders"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-cyan-400' : ''}`} />
-          </button>
+            <button
+              onClick={loadOrders}
+              className="p-2 bg-white hover:bg-gray-50 text-gray-500 hover:text-blue-600 rounded-xl border border-gray-200 transition-all shadow-sm cursor-pointer"
+              title="Refresh"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-500' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Lifecycle Flow Ribbon */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2 font-mono">
-        <span className="text-slate-400 font-sans font-semibold">Standard Lifecycle:</span>
-        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">1. AI Detected</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">2. Municipal Verified</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-800">3. PWD Assigned</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800">4. In Progress</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800">5. Completed + Proof</span>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-600" />
-        <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800 font-bold">6. Verified &amp; Closed</span>
+      {/* Lifecycle ribbon */}
+      <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs text-gray-600 flex flex-wrap items-center gap-2 shadow-sm">
+        <span className="text-gray-400 font-semibold text-[11px] uppercase tracking-wider">Lifecycle:</span>
+        {[
+          { label: '1. AI Detected', color: 'bg-gray-100 text-gray-600' },
+          { label: '2. Municipal Verified', color: 'bg-gray-100 text-gray-600' },
+          { label: '3. PWD Assigned', color: 'bg-blue-50 text-blue-700 border border-blue-200' },
+          { label: '4. In Progress', color: 'bg-amber-50 text-amber-700 border border-amber-200' },
+          { label: '5. Completed + Proof', color: 'bg-purple-50 text-purple-700 border border-purple-200' },
+          { label: '6. Verified & Closed', color: 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold' },
+        ].map((step, i, arr) => (
+          <React.Fragment key={step.label}>
+            <span className={`px-2.5 py-1 rounded-lg font-medium text-[11px] ${step.color}`}>{step.label}</span>
+            {i < arr.length - 1 && <ArrowRight className="w-3 h-3 text-gray-300 shrink-0" />}
+          </React.Fragment>
+        ))}
       </div>
 
       {/* Orders Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {workOrders.length === 0 ? (
-          <div className="col-span-2 text-center py-16 text-slate-500 text-xs">
+          <div className="col-span-2 text-center py-20 text-gray-400 text-sm bg-white rounded-2xl border border-gray-200">
             No work orders found in current filter.
           </div>
         ) : (
@@ -192,165 +169,128 @@ export default function WorkOrdersView({ onSelectLocation }) {
               ? (order.evidence_after_url.startsWith('http') ? order.evidence_after_url : `http://127.0.0.1:8000${order.evidence_after_url}`)
               : null;
 
+            const s = getStatusStyle(order.status);
+
             return (
-              <div
-                key={order.order_id}
-                className="bg-slate-900/90 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-4"
-              >
+              <div key={order.order_id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm card-hover flex flex-col justify-between space-y-4">
+
+                {/* Top */}
                 <div>
-                  {/* Top Bar */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono font-bold text-cyan-400 bg-cyan-950/80 px-2.5 py-0.5 rounded border border-cyan-800/60">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg border border-blue-100">
                         {order.order_id}
                       </span>
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded uppercase bg-slate-800 text-slate-300 font-mono">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-gray-100 text-gray-600 uppercase tracking-wide">
                         {order.problem_type}
                       </span>
                     </div>
-
-                    <span className={`text-[11px] font-bold font-mono px-2.5 py-0.5 rounded border ${getStatusBadge(order.status)}`}>
+                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${s.bg} ${s.text} ${s.border}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} ${order.status === 'IN_PROGRESS' ? 'animate-pulse' : ''}`}></span>
                       {order.status.replace(/_/g, ' ')}
                     </span>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-base font-bold text-white mb-1.5">{order.title}</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-3">{order.title}</h3>
 
-                  {/* Location & Details */}
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-300 mb-3 font-sans">
-                    <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
-                      <span className="text-[10px] text-slate-400 block uppercase font-medium">Location</span>
-                      <span className="font-semibold text-slate-200 block truncate">{order.location_name}</span>
-                      <span className="text-[10px] text-cyan-300 font-mono">
-                        {order.latitude?.toFixed(6)}° N, {order.longitude?.toFixed(6)}° E
+                  {/* Location + Zone */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                      <span className="text-[10px] text-gray-400 block uppercase font-semibold mb-0.5">Location</span>
+                      <span className="text-xs font-semibold text-gray-800 block truncate">{order.location_name}</span>
+                      <span className="text-[10px] text-blue-500 font-mono">
+                        {order.latitude?.toFixed(5)}° N, {order.longitude?.toFixed(5)}° E
                       </span>
                     </div>
-
-                    <div className="bg-slate-950 p-2 rounded-lg border border-slate-800/80">
-                      <span className="text-[10px] text-slate-400 block uppercase font-medium">Assigned Zone</span>
-                      <span className="font-semibold text-slate-200 block truncate">{order.assigned_zone}</span>
-                      <span className="text-[10px] text-amber-400 font-mono">Target: {order.deadline_date || 'Within 48h'}</span>
+                    <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                      <span className="text-[10px] text-gray-400 block uppercase font-semibold mb-0.5">Assigned Zone</span>
+                      <span className="text-xs font-semibold text-gray-800 block truncate">{order.assigned_zone}</span>
+                      <span className="text-[10px] text-amber-600 font-medium">Target: {order.deadline_date || 'Within 48h'}</span>
                     </div>
                   </div>
 
-                  {/* Visual Evidence Showcase: Before vs After */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                      Visual Evidence Comparison:
+                  {/* Evidence */}
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider block mb-2">
+                      Visual Evidence Comparison
                     </span>
                     <div className="grid grid-cols-2 gap-2">
-                      
-                      {/* Before Snapshot */}
-                      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-black aspect-video flex flex-col justify-end">
+                      <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 aspect-video">
                         {beforeImg ? (
-                          <img
-                            src={beforeImg}
-                            alt="Before repair"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "https://placehold.co/400x225/1e293b/ffffff?text=AI+Before+Snapshot";
-                            }}
-                          />
+                          <img src={beforeImg} alt="Before" className="w-full h-full object-cover"
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x225/f3f4f6/9ca3af?text=Before+Snapshot"; }} />
                         ) : (
-                          <div className="p-3 text-slate-500 text-[10px] text-center">No image</div>
+                          <div className="p-3 text-gray-400 text-[10px] text-center h-full flex items-center justify-center">No image</div>
                         )}
-                        <span className="absolute top-1 left-1 bg-red-900/80 text-red-200 text-[9px] font-mono px-1.5 py-0.5 rounded">
-                          BEFORE (AI Detected)
-                        </span>
+                        <span className="absolute top-1.5 left-1.5 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">BEFORE</span>
                       </div>
-
-                      {/* After Snapshot */}
-                      <div className="relative rounded-lg overflow-hidden border border-slate-800 bg-black aspect-video flex flex-col justify-end">
+                      <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 aspect-video">
                         {afterImg ? (
-                          <img
-                            src={afterImg}
-                            alt="After repair"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "https://placehold.co/400x225/1e293b/ffffff?text=PWD+Completion+Proof";
-                            }}
-                          />
+                          <img src={afterImg} alt="After" className="w-full h-full object-cover"
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/400x225/f3f4f6/9ca3af?text=PWD+Proof"; }} />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-600 text-[11px] bg-slate-950 font-mono">
-                            [Awaiting PWD Proof]
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-[11px] font-medium">
+                            Awaiting PWD Proof
                           </div>
                         )}
                         {afterImg && (
-                          <span className="absolute top-1 left-1 bg-emerald-900/80 text-emerald-200 text-[9px] font-mono px-1.5 py-0.5 rounded">
-                            AFTER (PWD Proof)
-                          </span>
+                          <span className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md">AFTER</span>
                         )}
                       </div>
-
                     </div>
                   </div>
 
-                  {/* Notes snippet */}
+                  {/* Notes */}
                   {(order.repair_notes || order.verification_notes) && (
-                    <div className="mt-3 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 text-[11px] text-slate-300">
+                    <div className="mt-3 bg-gray-50 p-3 rounded-xl border border-gray-100 text-[11px] text-gray-600">
                       {order.repair_notes && (
-                        <div><strong className="text-cyan-400">Repair Notes:</strong> {order.repair_notes}</div>
+                        <div><strong className="text-blue-600">Repair Notes:</strong> {order.repair_notes}</div>
                       )}
                       {order.verification_notes && (
-                        <div className="mt-1"><strong className="text-emerald-400">Verification:</strong> {order.verification_notes}</div>
+                        <div className="mt-1"><strong className="text-emerald-600">Verification:</strong> {order.verification_notes}</div>
                       )}
                     </div>
                   )}
-
                 </div>
 
-                {/* Role-Specific Action Footer */}
-                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Priority: <strong className={order.priority === 'EMERGENCY' ? 'text-red-400' : 'text-amber-400'}>{order.priority}</strong>
+                {/* Footer */}
+                <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+                  <span className="text-[11px] text-gray-400">
+                    Priority: <strong className={order.priority === 'EMERGENCY' ? 'text-red-600' : 'text-amber-600'}>{order.priority}</strong>
                   </span>
-
-                  <div className="flex items-center space-x-2">
-                    
-                    {/* PWD Actions */}
+                  <div className="flex items-center gap-2">
                     {isPWD && order.status === 'ASSIGNED' && (
                       <button
                         onClick={() => handleStartWork(order.order_id)}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-all cursor-pointer text-xs flex items-center gap-1"
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all text-xs shadow-sm cursor-pointer"
                       >
                         Start Field Repair
                       </button>
                     )}
-
                     {isPWD && order.status === 'IN_PROGRESS' && (
                       <button
-                        onClick={() => {
-                          setSelectedOrder(order);
-                          setIsProofModalOpen(true);
-                        }}
-                        className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg shadow-md transition-all cursor-pointer text-xs flex items-center gap-1"
+                        onClick={() => { setSelectedOrder(order); setIsProofModalOpen(true); }}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition-all text-xs flex items-center gap-1 cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5" />
-                        Upload Completion Proof
+                        Upload Proof
                       </button>
                     )}
-
-                    {/* Municipal Actions */}
                     {isMunicipal && order.status === 'COMPLETED' && (
                       <button
                         onClick={() => handleVerifyAndClose(order.order_id)}
-                        className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg shadow-md transition-all cursor-pointer text-xs flex items-center gap-1"
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition-all text-xs flex items-center gap-1 cursor-pointer"
                       >
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        Verify Proof &amp; Close
+                        Verify & Close
                       </button>
                     )}
-
                     {order.status === 'VERIFIED_AND_CLOSED' && (
-                      <span className="text-emerald-400 font-bold flex items-center gap-1 text-xs">
+                      <span className="text-emerald-600 font-bold flex items-center gap-1 text-xs">
                         <CheckCircle2 className="w-4 h-4" />
-                        Work Certified &amp; Closed
+                        Certified & Closed
                       </span>
                     )}
-
                   </div>
                 </div>
 
@@ -362,92 +302,62 @@ export default function WorkOrdersView({ onSelectLocation }) {
 
       {/* PWD Upload Proof Modal */}
       {isProofModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#111827] border border-emerald-600/50 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900">
-              <div className="flex items-center space-x-2.5">
-                <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <Camera className="w-5 h-5" />
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                  <Camera className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-base font-bold text-white">Upload Completion Proof</h3>
-                  <p className="text-xs text-slate-400">{selectedOrder.order_id} — {selectedOrder.title}</p>
+                  <h3 className="text-base font-bold text-gray-900">Upload Completion Proof</h3>
+                  <p className="text-xs text-gray-400">{selectedOrder.order_id} — {selectedOrder.title}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsProofModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1"
-              >
+              <button onClick={() => setIsProofModalOpen(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmitProof} className="p-6 space-y-4 text-xs">
-              
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  Repaired Site Photo URL:
-                </label>
+                <label className="block text-gray-700 font-semibold mb-1.5">Repaired Site Photo URL:</label>
                 <input
-                  type="text"
-                  required
-                  value={proofUrl}
-                  onChange={(e) => setProofUrl(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-mono"
+                  type="text" required value={proofUrl} onChange={(e) => setProofUrl(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-gray-800 font-mono text-xs focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
-                <span className="text-[10px] text-slate-400 block mt-1">
-                  Preloaded with PWD post-repair compaction verified snapshot.
-                </span>
               </div>
 
-              {/* Photo Preview */}
               <div>
-                <span className="block text-slate-400 mb-1">Proof Image Preview:</span>
-                <div className="rounded-xl overflow-hidden border border-slate-700 bg-black aspect-video flex items-center justify-center">
+                <span className="block text-gray-500 mb-1.5">Proof Image Preview:</span>
+                <div className="rounded-xl overflow-hidden border border-gray-200 aspect-video">
                   <img
                     src={proofUrl.startsWith('http') ? proofUrl : `http://127.0.0.1:8000${proofUrl}`}
-                    alt="Proof Preview"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://placehold.co/600x340/1e293b/ffffff?text=Preview+Image";
-                    }}
+                    alt="Proof Preview" className="w-full h-full object-cover"
+                    onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/600x340/f3f4f6/9ca3af?text=Preview"; }}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
-                  PWD Repair &amp; Compaction Certification Notes:
-                </label>
-                <textarea
-                  rows="3"
-                  required
-                  value={repairNotes}
-                  onChange={(e) => setRepairNotes(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200 text-xs focus:outline-none focus:border-cyan-500"
-                ></textarea>
+                <label className="block text-gray-700 font-semibold mb-1.5">PWD Repair & Compaction Notes:</label>
+                <textarea rows="3" required value={repairNotes} onChange={(e) => setRepairNotes(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-gray-800 text-xs focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
+                </textarea>
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsProofModalOpen(false)}
-                  className="px-4 py-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg"
-                >
+              <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                <button type="button" onClick={() => setIsProofModalOpen(false)}
+                  className="px-4 py-2 text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-medium transition-colors">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingProof}
-                  className="px-5 py-2 font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 rounded-lg shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 cursor-pointer"
-                >
+                <button type="submit" disabled={isSubmittingProof}
+                  className="px-5 py-2 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer text-xs transition-colors">
                   <CheckCircle2 className="w-4 h-4" />
                   {isSubmittingProof ? 'Submitting...' : 'Submit Proof & Mark Completed'}
                 </button>
               </div>
-
             </form>
 
           </div>

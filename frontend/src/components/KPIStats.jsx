@@ -1,6 +1,24 @@
 import React from 'react';
 import { AlertTriangle, Bus, CheckCircle2, ShieldAlert, Cpu } from 'lucide-react';
 
+const KPICard = ({ icon: Icon, iconBg, iconColor, label, value, valueColor, subLabel, subValue, subColor, borderColor }) => (
+  <div className={`bg-white rounded-2xl p-4 shadow-sm border ${borderColor || 'border-gray-200'} flex flex-col gap-2 card-hover`}>
+    <div className="flex items-center justify-between">
+      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
+      <span className={`p-2 rounded-xl ${iconBg}`}>
+        <Icon className={`w-4 h-4 ${iconColor}`} />
+      </span>
+    </div>
+    <div className="flex items-baseline gap-2">
+      <span className={`text-3xl font-black ${valueColor || 'text-gray-900'} leading-none`}>{value}</span>
+      <span className="text-xs text-gray-400">{subLabel}</span>
+    </div>
+    {subValue && (
+      <p className={`text-[11px] font-medium ${subColor || 'text-gray-400'}`}>{subValue}</p>
+    )}
+  </div>
+);
+
 export default function KPIStats({ summary, totalEventsCount }) {
   const kpis = summary?.kpis || {
     total_events: totalEventsCount || 8,
@@ -18,94 +36,71 @@ export default function KPIStats({ summary, totalEventsCount }) {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-      
-      {/* Total Events */}
-      <div className="bg-[#131b26] border border-slate-800/80 rounded-xl p-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Road Events</span>
-          <span className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
-            <Cpu className="w-4 h-4" />
-          </span>
-        </div>
-        <div className="mt-1 flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-white">{kpis.total_events}</span>
-          <span className="text-[11px] text-slate-400 font-mono">detected</span>
-        </div>
-        <div className="mt-2 text-[10px] text-slate-400 flex items-center gap-2">
-          <span className="text-red-400 font-semibold">{breakdown.potholes} Potholes</span>
-          <span>•</span>
-          <span className="text-amber-400 font-semibold">{breakdown.congestion} Congestion</span>
-        </div>
-      </div>
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
 
-      {/* Critical Alerts */}
-      <div className="bg-[#131b26] border border-red-900/40 rounded-xl p-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-red-300 uppercase tracking-wider">High / Critical</span>
-          <span className="p-1.5 rounded-lg bg-red-500/10 text-red-400">
-            <AlertTriangle className="w-4 h-4" />
-          </span>
-        </div>
-        <div className="mt-1 flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-red-400">{kpis.critical_events}</span>
-          <span className="text-[11px] text-red-300 font-mono">urgent attention</span>
-        </div>
-        <div className="mt-2 text-[10px] text-red-300/80">
-          Impact: Transit speed reduction &gt; 50%
-        </div>
-      </div>
+      <KPICard
+        icon={Cpu}
+        iconBg="bg-blue-50"
+        iconColor="text-blue-600"
+        label="Road Events"
+        value={kpis.total_events}
+        subLabel="detected"
+        subValue={`${breakdown.potholes} Potholes · ${breakdown.congestion} Congestion`}
+        subColor="text-gray-500"
+        borderColor="border-gray-200"
+      />
 
-      {/* Active Fleet Sensing Nodes */}
-      <div className="bg-[#131b26] border border-slate-800/80 rounded-xl p-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Active Bus Fleet</span>
-          <span className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400">
-            <Bus className="w-4 h-4" />
-          </span>
-        </div>
-        <div className="mt-1 flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-cyan-400">{kpis.active_buses}</span>
-          <span className="text-[11px] text-slate-400 font-mono">buses sensing</span>
-        </div>
-        <div className="mt-2 text-[10px] text-slate-400">
-          Edge Nodes: Jetson &amp; Pi5+Coral TPU
-        </div>
-      </div>
+      <KPICard
+        icon={AlertTriangle}
+        iconBg="bg-red-50"
+        iconColor="text-red-500"
+        label="High / Critical"
+        value={kpis.critical_events}
+        valueColor="text-red-500"
+        subLabel="urgent"
+        subValue="Speed reduction > 50%"
+        subColor="text-red-400"
+        borderColor="border-red-100"
+      />
 
-      {/* Multi-Bus Confirmed Defects */}
-      <div className="bg-[#131b26] border border-amber-900/40 rounded-xl p-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-amber-300 uppercase tracking-wider">Fleet Confirmed</span>
-          <span className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
-            <ShieldAlert className="w-4 h-4" />
-          </span>
-        </div>
-        <div className="mt-1 flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-amber-400">{kpis.persistent_defects}</span>
-          <span className="text-[11px] text-amber-300 font-mono">multi-bus defects</span>
-        </div>
-        <div className="mt-2 text-[10px] text-amber-300/80">
-          4 Independent bus sightings (WEH)
-        </div>
-      </div>
+      <KPICard
+        icon={Bus}
+        iconBg="bg-sky-50"
+        iconColor="text-sky-600"
+        label="Active Fleet"
+        value={kpis.active_buses}
+        valueColor="text-sky-600"
+        subLabel="buses sensing"
+        subValue="Jetson & Pi5 + Coral TPU"
+        subColor="text-gray-400"
+        borderColor="border-sky-100"
+      />
 
-      {/* Resolved / Closed Workflows */}
-      <div className="bg-[#131b26] border border-emerald-900/40 rounded-xl p-3.5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-emerald-300 uppercase tracking-wider">Resolved Issues</span>
-          <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-            <CheckCircle2 className="w-4 h-4" />
-          </span>
-        </div>
-        <div className="mt-1 flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-emerald-400">{kpis.resolved_events}</span>
-          <span className="text-[11px] text-emerald-300 font-mono">rectified</span>
-        </div>
-        <div className="mt-2 text-[10px] text-emerald-300/80">
-          Authority inspection workflow active
-        </div>
-      </div>
+      <KPICard
+        icon={ShieldAlert}
+        iconBg="bg-amber-50"
+        iconColor="text-amber-500"
+        label="Fleet Confirmed"
+        value={kpis.persistent_defects}
+        valueColor="text-amber-600"
+        subLabel="multi-bus"
+        subValue="4 independent bus sightings"
+        subColor="text-amber-500"
+        borderColor="border-amber-100"
+      />
+
+      <KPICard
+        icon={CheckCircle2}
+        iconBg="bg-emerald-50"
+        iconColor="text-emerald-600"
+        label="Resolved Issues"
+        value={kpis.resolved_events}
+        valueColor="text-emerald-600"
+        subLabel="rectified"
+        subValue="Authority workflow complete"
+        subColor="text-emerald-500"
+        borderColor="border-emerald-100"
+      />
 
     </div>
   );

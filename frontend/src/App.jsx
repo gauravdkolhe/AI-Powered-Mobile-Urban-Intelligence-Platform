@@ -31,9 +31,7 @@ import { createWebSocketConnection } from './services/websocket';
 function MainDashboard() {
   const { currentRole } = useAuth();
 
-  // Active tab state
   const [activeTab, setActiveTab] = useState('MAP');
-
   const [events, setEvents] = useState([]);
   const [fleet, setFleet] = useState([]);
   const [workOrders, setWorkOrders] = useState([]);
@@ -65,7 +63,6 @@ function MainDashboard() {
   const [wsStatus, setWsStatus] = useState('DISCONNECTED');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Load all platform data
   const loadAllData = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -111,7 +108,6 @@ function MainDashboard() {
     loadAllData();
   }, [loadAllData]);
 
-  // Real-time WebSocket connection
   useEffect(() => {
     const ws = createWebSocketConnection(
       (msg) => {
@@ -157,9 +153,8 @@ function MainDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0f17] text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-      
-      {/* Navbar with Department RBAC Switcher */}
+    <div className="min-h-screen bg-[#f4f6fa] text-[#1a2332] flex flex-col font-sans">
+
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -168,13 +163,10 @@ function MainDashboard() {
         eventCount={events.length}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-4 lg:p-6 max-w-[1600px] w-full mx-auto space-y-4">
-        
-        {/* KPI Header Cards */}
+      <main className="flex-1 px-4 lg:px-6 py-5 max-w-[1700px] w-full mx-auto space-y-4">
+
         <KPIStats summary={summary} totalEventsCount={events.length} />
 
-        {/* View Tab Content */}
         {activeTab === 'MAP' && (
           <div className="space-y-4">
             <FilterBar
@@ -187,9 +179,9 @@ function MainDashboard() {
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              
-              {/* Interactive Leaflet GIS Map (3 Columns) */}
-              <div className="lg:col-span-3 h-[640px]">
+
+              {/* GIS Map */}
+              <div className="lg:col-span-3 h-[640px] rounded-2xl overflow-hidden shadow-sm border border-gray-200">
                 <GISMap
                   events={events}
                   fleet={fleet}
@@ -202,21 +194,21 @@ function MainDashboard() {
                 />
               </div>
 
-              {/* Real-Time Live Feed Sidebar (1 Column) */}
-              <div className="bg-[#131b26] border border-slate-800 rounded-2xl p-4 flex flex-col h-[640px] shadow-xl">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                    Verified Events Feed
+              {/* Events Feed Sidebar */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col h-[640px] shadow-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                    Live Events Feed
                   </span>
-                  <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/50">
+                  <span className="text-xs font-semibold font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
                     {events.length} Active
                   </span>
                 </div>
 
-                <div className="flex-1 overflow-y-auto mt-3 space-y-2.5 pr-1">
+                <div className="flex-1 overflow-y-auto mt-3 space-y-2 pr-0.5">
                   {events.length === 0 ? (
-                    <div className="text-slate-500 text-xs text-center py-12">
+                    <div className="text-gray-400 text-xs text-center py-12">
                       No events match current filter.
                     </div>
                   ) : (
@@ -224,33 +216,33 @@ function MainDashboard() {
                       <div
                         key={evt.event_id}
                         onClick={() => setSelectedEvent(evt)}
-                        className="p-3 bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 rounded-xl cursor-pointer transition-all text-xs space-y-1.5"
+                        className="p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-xl cursor-pointer transition-all text-xs space-y-1.5 group"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-200">
+                          <span className="font-semibold text-gray-800 group-hover:text-blue-700">
                             {evt.event_type.replace('_', ' ')}
                           </span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${
-                            evt.severity === 'CRITICAL' ? 'bg-red-500/20 text-red-400' :
-                            evt.severity === 'HIGH' ? 'bg-orange-500/20 text-orange-400' :
-                            'bg-yellow-500/20 text-yellow-400'
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            evt.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' :
+                            evt.severity === 'HIGH' ? 'bg-orange-100 text-orange-600' :
+                            'bg-yellow-100 text-yellow-700'
                           }`}>
                             {evt.severity}
                           </span>
                         </div>
 
-                        <div className="text-[11px] text-slate-400 truncate">
+                        <div className="text-[11px] text-gray-500 truncate">
                           {evt.location_name || 'Urban Corridor'}
                         </div>
 
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px] text-slate-400 font-mono">
-                          <span>Bus: {evt.bus_id} ({evt.route_id})</span>
-                          <span className="text-cyan-400">Drop: {evt.speed_reduction_percent}%</span>
+                        <div className="flex items-center justify-between pt-1 border-t border-gray-200 text-[10px] text-gray-400 font-mono">
+                          <span>{evt.bus_id} · {evt.route_id}</span>
+                          <span className="text-red-500 font-semibold">↓{evt.speed_reduction_percent}%</span>
                         </div>
 
                         {evt.work_order_id && (
-                          <div className="pt-1 text-[10px] text-blue-400 font-mono">
-                            🛠️ {evt.work_order_id} Dispatched
+                          <div className="pt-1 text-[10px] text-blue-500 font-medium">
+                            🛠 {evt.work_order_id} Dispatched
                           </div>
                         )}
                       </div>
@@ -263,7 +255,6 @@ function MainDashboard() {
           </div>
         )}
 
-        {/* Work Orders Hub (Municipal & PWD) */}
         {activeTab === 'WORK_ORDERS' && (
           <WorkOrdersView
             onSelectLocation={(loc) => {
@@ -272,7 +263,6 @@ function MainDashboard() {
           />
         )}
 
-        {/* Fleet Manager View (Public Transport Operator) */}
         {activeTab === 'FLEET_OVERVIEW' && (
           <FleetManagerView
             fleet={fleet}
@@ -281,7 +271,6 @@ function MainDashboard() {
           />
         )}
 
-        {/* Repeated Defects View (Municipal Corporation) */}
         {activeTab === 'REPEATED_DEFECTS' && (
           <RepeatedDefectsView
             defects={repeatedDefects}
@@ -289,12 +278,10 @@ function MainDashboard() {
           />
         )}
 
-        {/* Route Delay View (Traffic Management) */}
         {activeTab === 'ROUTE_DELAYS' && (
           <RouteDelayView segments={routeSegments} />
         )}
 
-        {/* ANPR View (Traffic & Transport) */}
         {activeTab === 'ANPR' && (
           <ANPRView
             incidents={incidents}
@@ -304,7 +291,6 @@ function MainDashboard() {
 
       </main>
 
-      {/* Event Details Inspection Modal (Spec Section 26) */}
       <EventDetailModal
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
@@ -312,7 +298,6 @@ function MainDashboard() {
         onCreateWorkOrder={(evt) => setCreatingWorkOrderEvent(evt)}
       />
 
-      {/* Municipal Create Work Order Modal */}
       {creatingWorkOrderEvent && (
         <CreateWorkOrderModal
           event={creatingWorkOrderEvent}
@@ -324,7 +309,6 @@ function MainDashboard() {
         />
       )}
 
-      {/* Live Edge Simulation Console Drawer */}
       <LiveSimulationDrawer
         isOpen={isSimulatorOpen}
         onClose={() => setIsSimulatorOpen(false)}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -121,10 +121,79 @@ export default function GISMap({
   onSelectEvent,
   onSelectWorkOrder
 }) {
+  const [mapStyle, setMapStyle] = useState('streets');
   const defaultCenter = [19.0760, 72.8777]; // Mumbai Western Express Corridor
+
+  const mapApiKey = import.meta.env.VITE_MAP_API_KEY || '';
+  const customTileUrl = import.meta.env.VITE_MAP_TILE_URL;
+
+  // Determine active tile configuration (Default: 100% Free OpenStreetMap - zero API key required, zero watermarks)
+  const tileConfig = useMemo(() => {
+    if (customTileUrl) {
+      return {
+        url: customTileUrl,
+        attribution: '&copy; Map Provider'
+      };
+    }
+    if (mapStyle === 'satellite') {
+      return {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles &copy; Esri'
+      };
+    }
+    if (mapStyle === 'carto' && mapApiKey) {
+      return {
+        url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${mapApiKey}`,
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> | &copy; OpenStreetMap'
+      };
+    }
+    // Default: OpenStreetMap standard tiles (never requires an API key)
+    return {
+      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    };
+  }, [mapStyle, mapApiKey, customTileUrl]);
 
   return (
     <div className="relative w-full h-full min-h-[580px] rounded-2xl overflow-hidden border border-slate-800 shadow-2xl isolate z-0">
+      {/* Map Basemap Style Switcher (Streets, Satellite, Carto) */}
+      <div className="absolute top-3 right-3 z-[1000] bg-slate-900/90 border border-slate-700/80 p-1 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-1 text-[11px]">
+        <button
+          onClick={() => setMapStyle('streets')}
+          className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+            mapStyle === 'streets'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+          title="OpenStreetMap Standard (Free, No API Key Required)"
+        >
+          🗺️ Streets
+        </button>
+        <button
+          onClick={() => setMapStyle('satellite')}
+          className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+            mapStyle === 'satellite'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+          title="High-Resolution Satellite Imagery"
+        >
+          🛰️ Satellite
+        </button>
+        {mapApiKey && (
+          <button
+            onClick={() => setMapStyle('carto')}
+            className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+              mapStyle === 'carto'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            🏙️ Carto
+          </button>
+        )}
+      </div>
+
       <MapContainer
         center={defaultCenter}
         zoom={13}
@@ -133,10 +202,11 @@ export default function GISMap({
       >
         <MapRecenter center={defaultCenter} />
 
-        {/* High-Contrast Dark CartoDB Tiles for Command Center */}
+        {/* Dynamic Basemap Tiles (Default: OpenStreetMap - zero API key required) */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CARTO</a> | OpenStreetMap'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          key={tileConfig.url}
+          attribution={tileConfig.attribution}
+          url={tileConfig.url}
           maxZoom={19}
         />
 

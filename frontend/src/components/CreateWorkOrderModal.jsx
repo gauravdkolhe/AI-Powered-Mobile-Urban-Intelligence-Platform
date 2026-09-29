@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Briefcase, MapPin, AlertTriangle, Calendar, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { X, Briefcase, CheckCircle2 } from 'lucide-react';
 import { createWorkOrder } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -23,20 +23,19 @@ export default function CreateWorkOrderModal({ event, onClose, onCreated }) {
     try {
       const payload = {
         event_id: event.event_id,
-        title: title,
+        title,
         problem_type: event.event_type,
         location_name: event.location_name || 'Urban Transit Corridor',
         latitude: event.latitude,
         longitude: event.longitude,
         severity: event.severity,
-        priority: priority,
+        priority,
         assigned_department: 'PWD',
         assigned_zone: zone,
         deadline_date: deadline,
         evidence_before_url: event.evidence_image_url || '/uploads/EVT_00182_snapshot.jpg',
         repair_notes: notes
       };
-
       const newOrder = await createWorkOrder(payload);
       if (onCreated) onCreated(newOrder);
       onClose();
@@ -47,144 +46,120 @@ export default function CreateWorkOrderModal({ event, onClose, onCreated }) {
     }
   };
 
+  const inputClass = "w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-gray-800 text-xs focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all";
+
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-[#111827] border border-blue-600/50 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
-        
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl">
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-900/90">
-          <div className="flex items-center space-x-3">
-            <span className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <Briefcase className="w-5 h-5" />
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <span className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+              <Briefcase className="w-4 h-4" />
             </span>
             <div>
-              <h2 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
-                CREATE PWD WORK ORDER
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-900/60 text-blue-300 border border-blue-700/50">
+              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                Create PWD Work Order
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
                   Municipal Action
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">
-                Dispatches verified defect {event.event_id} to Public Works Department (PWD) for execution.
+              <p className="text-xs text-gray-400">
+                Dispatches verified defect {event.event_id} to Public Works Department for execution.
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-          
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">Work Order Title:</label>
+            <label className="block text-xs text-gray-600 font-semibold mb-1.5 uppercase tracking-wider">Work Order Title:</label>
             <input
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium"
+              type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
+              className={inputClass}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
             <div>
-              <label className="block text-slate-400 mb-1 font-medium">Assigned Department:</label>
+              <label className="block text-xs text-gray-500 mb-1.5 font-medium">Assigned Department:</label>
               <input
-                type="text"
-                disabled
-                value="Public Works Department (PWD)"
-                className="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-300 font-medium cursor-not-allowed"
+                type="text" disabled value="Public Works Department (PWD)"
+                className={`${inputClass} bg-gray-100 text-gray-400 cursor-not-allowed`}
               />
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-1 font-medium">Assign PWD Division / Zone:</label>
-              <select
-                value={zone}
-                onChange={(e) => setZone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-cyan-500"
-              >
+              <label className="block text-xs text-gray-600 mb-1.5 font-semibold">PWD Division / Zone:</label>
+              <select value={zone} onChange={(e) => setZone(e.target.value)} className={inputClass}>
                 <option value="PWD Zone 3 - Western Corridor">PWD Zone 3 - Western Corridor (Bandra - Santacruz)</option>
-                <option value="PWD Zone 2 - Drainage Maintenance">PWD Zone 2 - Central Drainage &amp; Underpasses</option>
+                <option value="PWD Zone 2 - Drainage Maintenance">PWD Zone 2 - Central Drainage & Underpasses</option>
                 <option value="PWD Zone 1 - Island City Division">PWD Zone 1 - Island City Division</option>
-                <option value="PWD Zone 4 - Andheri Division">PWD Zone 4 - Andheri &amp; Link Road Division</option>
+                <option value="PWD Zone 4 - Andheri Division">PWD Zone 4 - Andheri & Link Road Division</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-1 font-medium">Execution Priority:</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-cyan-500"
-              >
-                <option value="EMERGENCY">🚨 Emergency (Immediate Cordon &amp; Repair)</option>
+              <label className="block text-xs text-gray-600 mb-1.5 font-semibold">Execution Priority:</label>
+              <select value={priority} onChange={(e) => setPriority(e.target.value)} className={inputClass}>
+                <option value="EMERGENCY">🚨 Emergency (Immediate Cordon & Repair)</option>
                 <option value="HIGH">⚡ High Priority (&lt; 24h)</option>
                 <option value="NORMAL">Standard Priority (&lt; 72h)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-1 font-medium">Target Completion Deadline:</label>
-              <select
-                value={deadline}
-                onChange={(e) => setDeadline(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-100 focus:outline-none focus:border-cyan-500"
-              >
+              <label className="block text-xs text-gray-600 mb-1.5 font-semibold">Target Completion Deadline:</label>
+              <select value={deadline} onChange={(e) => setDeadline(e.target.value)} className={inputClass}>
                 <option value="Today, 18:00 IST">Today, 18:00 IST</option>
                 <option value="Within 24 Hours">Within 24 Hours</option>
                 <option value="Within 48 Hours">Within 48 Hours</option>
                 <option value="Weekend Maintenance Window">Weekend Maintenance Window</option>
               </select>
             </div>
-
           </div>
 
-          {/* Location Summary Box */}
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+          {/* Location box */}
+          <div className="bg-blue-50 border border-blue-200 p-3.5 rounded-xl flex items-center justify-between text-xs">
             <div>
-              <span className="text-[10px] text-slate-500 block uppercase font-medium">Repair Site Coordinates</span>
-              <span className="text-cyan-300 font-mono font-bold">
+              <span className="text-[10px] text-blue-400 block uppercase font-semibold mb-0.5">Repair Site</span>
+              <span className="text-blue-700 font-mono font-bold">
                 {event.latitude?.toFixed(6)}° N, {event.longitude?.toFixed(6)}° E
               </span>
-              <span className="text-slate-400 block text-[11px] mt-0.5">{event.location_name}</span>
+              <span className="text-blue-600 block mt-0.5">{event.location_name}</span>
             </div>
             <div className="text-right">
-              <span className="text-[10px] text-slate-500 block uppercase font-medium">Originating Event</span>
-              <span className="text-amber-400 font-mono font-bold">{event.event_id}</span>
-              <span className="text-slate-400 block text-[10px]">Speed drop: {event.speed_reduction_percent}%</span>
+              <span className="text-[10px] text-blue-400 block uppercase font-semibold mb-0.5">Event ID</span>
+              <span className="text-amber-600 font-mono font-bold">{event.event_id}</span>
+              <span className="text-blue-500 block mt-0.5">Speed drop: {event.speed_reduction_percent}%</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-300 font-semibold mb-1">Field Instructions for PWD Crew:</label>
+            <label className="block text-xs text-gray-600 font-semibold mb-1.5">Field Instructions for PWD Crew:</label>
             <textarea
-              rows="3"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-slate-200 text-xs focus:outline-none focus:border-cyan-500"
+              rows="3" value={notes} onChange={(e) => setNotes(e.target.value)}
+              className={`${inputClass} resize-none`}
             ></textarea>
           </div>
 
           {/* Buttons */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-3">
+          <div className="pt-3 border-t border-gray-100 flex justify-end gap-2">
             <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors"
+              type="button" onClick={onClose}
+              className="px-4 py-2 text-xs text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-5 py-2 font-bold text-slate-950 bg-blue-400 hover:bg-blue-300 rounded-lg shadow-lg shadow-blue-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              type="submit" disabled={isSubmitting}
+              className="px-5 py-2 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm flex items-center gap-1.5 cursor-pointer text-xs transition-all"
             >
               <CheckCircle2 className="w-4 h-4" />
               {isSubmitting ? 'Dispatching...' : 'Dispatch Work Order to PWD'}
